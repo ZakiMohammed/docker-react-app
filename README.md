@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+# Getting Started with Docker React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Reference Link: https://www.pluralsight.com/guides/using-react.js-with-docker
 
-## Available Scripts
+#### Install Docker
 
-In the project directory, you can run:
+Download for Windows:
+```
+https://docs.docker.com/desktop/windows/install/
+```
 
-### `npm start`
+Check docker installed:
+> docker --version
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Run the installer and follow the below steps:
+1. Go to "Windows Features"
+2. Enable "Virtual Machine Platform"
+3. Enable "Windows subsystem for Linux"
+4. Enable "Hyper-V"
+5. Restart your machine
+6. Go to BIOS setting
+7. Find "Virtualization" option from "System Configuration > Virtualization Technology"
+8. Enable Virtualization
+9. Restart your machine
+10. Go to this "https://docs.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package" to download the linux kernel update
+11. Install the update
+12. Run command in CMD
+> wsl --set-default-version 2
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### Create React App
 
-### `npm test`
+Run following command to create react app
+```
+npx create-react-app docker-react-app
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Create a Dockerfile:
+```
+# pull the base image
+FROM node:alpine
 
-### `npm run build`
+# set the working direction
+WORKDIR /app
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# install app depdendencies
+COPY package.json ./
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+COPY package-lock.json ./
 
-### `npm run eject`
+RUN npm install
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# add app
+COPY . ./
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# start app
+CMD ["npm", "start"]
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Create a .dockerignore file:
+```
+node_modules
+npm-debug.log
+build
+.dockerignore
+**/.git
+**/.DS_Store
+**/node_modules
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+#### Build Docker Container
 
-## Learn More
+Run following command to build image:
+```
+docker build -t ps-container:dev .
+```
+Check your container:
+```
+docker image ls
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### Run Docker Container
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Run following command to build image:
+```
+docker run -it --rm -v "%cd%":/app -v /app/node_modues/ -p 3001:3000 -e CHOKIDAR_USEPOLLING=true ps-container:dev
+```
+For windows "%cd%" instead of ${PWD}
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Check your application on: http://localhost:3001/
